@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ShadowLiquidity — Predictive DeFi Liquidation Intelligence</title>
+  <style>
+    :root {
+      --bg: #0a0a0a;
+      --fg: #f0f0f0;
+      --accent: #ff6b35;
+      --accent-hover: #ff8555;
+      --muted: #888;
+      --code-bg: #1a1a1a;
+      --border: #222;
+    }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      background-color: var(--bg);
+      color: var(--fg);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      line-height: 1.6;
+      padding: 2rem;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    h1, h2, h3 {
+      font-weight: 600;
+      margin-top: 2rem;
+      margin-bottom: 1rem;
+    }
+    h1 {
+      font-size: 2.8rem;
+      background: linear-gradient(135deg, #fff, var(--accent));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      margin-bottom: 0.5rem;
+    }
+    h2 {
+      font-size: 1.8rem;
+      color: var(--fg);
+    }
+    p, ul {
+      margin-bottom: 1.2rem;
+      color: #ccc;
+    }
+    code {
+      background: var(--code-bg);
+      padding: 0.2em 0.4em;
+      border-radius: 4px;
+      font-family: 'SFMono-Regular', Consolas, monospace;
+      font-size: 0.95em;
+      color: var(--accent);
+    }
+    pre {
+      background: var(--code-bg);
+      padding: 1.5rem;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin: 1.5rem 0;
+      border: 1px solid var(--border);
+    }
+    pre code {
+      color: #f0f0f0;
+      background: none;
+      padding: 0;
+    }
+    .hero {
+      text-align: center;
+      padding: 3rem 0;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 3rem;
+    }
+    .hero-content {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 3rem;
+      align-items: center;
+      margin-top: 2rem;
+    }
+    .hero-text {
+      text-align: left;
+    }
+    .hero-image {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .hero-image img {
+      max-width: 100%;
+      height: auto;
+      filter: drop-shadow(0 0 40px rgba(255, 107, 53, 0.3));
+      animation: float 6s ease-in-out infinite;
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-20px); }
+    }
+    .tagline {
+      color: var(--muted);
+      font-size: 1.2rem;
+      margin-bottom: 2rem;
+      line-height: 1.8;
+    }
+    .cta-container {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      margin-top: 2rem;
+      flex-wrap: wrap;
+    }
+    .btn {
+      padding: 0.9rem 2rem;
+      border-radius: 6px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.3s ease;
+      display: inline-block;
+      font-size: 1rem;
+    }
+    .btn-primary {
+      background: var(--accent);
+      color: white;
+    }
+    .btn-primary:hover {
+      background: var(--accent-hover);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+    }
+    .btn-secondary {
+      background: transparent;
+      color: var(--fg);
+      border: 2px solid var(--border);
+    }
+    .btn-secondary:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.5rem;
+      margin: 2rem 0;
+      padding: 2rem 0;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+    .metric-card {
+      text-align: center;
+      padding: 1.5rem;
+      background: var(--code-bg);
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+    .metric-value {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: var(--accent);
+      display: block;
+      margin-bottom: 0.5rem;
+    }
+    .metric-label {
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+    .comparison-table {
+      width: 100%;
+      margin: 2rem 0;
+      border-collapse: collapse;
+    }
+    .comparison-table th,
+    .comparison-table td {
+      padding: 1rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+    .comparison-table th {
+      background: var(--code-bg);
+      font-weight: 600;
+      color: var(--accent);
+    }
+    .comparison-table tr:hover {
+      background: rgba(255, 107, 53, 0.05);
+    }
+    .checkmark {
+      color: #4ade80;
+      font-weight: bold;
+    }
+    .crossmark {
+      color: #f87171;
+      font-weight: bold;
+    }
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 2rem;
+      margin: 2rem 0;
+    }
+    .pricing-card {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 2rem;
+      transition: transform 0.3s ease;
+    }
+    .pricing-card:hover {
+      transform: translateY(-4px);
+      border-color: var(--accent);
+    }
+    .pricing-card.featured {
+      border: 2px solid var(--accent);
+      position: relative;
+    }
+    .pricing-badge {
+      position: absolute;
+      top: -12px;
+      right: 20px;
+      background: var(--accent);
+      color: white;
+      padding: 0.3rem 1rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+    .price {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: var(--accent);
+      margin: 1rem 0;
+    }
+    .price-label {
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+    .feature-list {
+      list-style: none;
+      margin: 1.5rem 0;
+    }
+    .feature-list li {
+      padding: 0.5rem 0;
+      padding-left: 1.5rem;
+      position: relative;
+    }
+    .feature-list li:before {
+      content: "✓";
+      position: absolute;
+      left: 0;
+      color: var(--accent);
+      font-weight: bold;
+    }
+    .faq-item {
+      margin-bottom: 1.5rem;
+      padding: 1.5rem;
+      background: var(--code-bg);
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+    .faq-question {
+      font-weight: 600;
+      color: var(--fg);
+      margin-bottom: 0.5rem;
+      font-size: 1.1rem;
+    }
+    .faq-answer {
+      color: #ccc;
+      margin-bottom: 0;
+    }
+    .workflow {
+      display: flex;
+      justify-content: space-between;
+      margin: 2rem 0;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    .workflow-step {
+      flex: 1;
+      min-width: 200px;
+      text-align: center;
+      padding: 1.5rem;
+      background: var(--code-bg);
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      position: relative;
+    }
+    .workflow-step:not(:last-child):after {
+      content: "→";
+      position: absolute;
+      right: -1.5rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--accent);
+      font-size: 1.5rem;
+    }
+    .step-number {
+      display: inline-block;
+      width: 40px;
+      height: 40px;
+      background: var(--accent);
+      color: white;
+      border-radius: 50%;
+      line-height: 40px;
+      font-weight: bold;
+      margin-bottom: 1rem;
+    }
+    .step-title {
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: var(--fg);
+    }
+    .step-desc {
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+    footer {
+      margin-top: 4rem;
+      padding-top: 2rem;
+      border-top: 1px solid var(--border);
+      text-align: center;
+    }
+    .social-links {
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      margin: 1.5rem 0;
+      flex-wrap: wrap;
+    }
+    .social-links a {
+      color: var(--muted);
+      text-decoration: none;
+      transition: color 0.3s ease;
+      font-size: 1.1rem;
+    }
+    .social-links a:hover {
+      color: var(--accent);
+    }
+    footer p {
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+    section {
+      margin-bottom: 4rem;
+    }
+    ul {
+      padding-left: 1.5rem;
+    }
+    li {
+      margin-bottom: 0.5rem;
+      color: #ccc;
+    }
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 2rem;
+      }
+      .hero-content {
+        grid-template-columns: 1fr;
+      }
+      .hero-text {
+        text-align: center;
+      }
+      .hero-image {
+        order: -1;
+      }
+      .workflow-step:not(:last-child):after {
+        display: none;
+      }
+      .cta-container {
+        flex-direction: column;
+      }
+      .btn {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="hero">
+    <h1>ShadowLiquidity</h1>
+    <p class="tagline">
+      Predictive intelligence for on-chain liquidation risk — detect vulnerable positions <strong>before</strong> they hit the mempool.
+    </p>
+    <div class="hero-content">
+      <div class="hero-text">
+        <p style="font-size: 1.1rem; color: #ccc; margin-bottom: 2rem; line-height: 1.8;">
+          Monitor DeFi positions in real-time. Get alerted when health factors drop below safe thresholds. 
+          <strong style="color: var(--accent);">No execution risk. No capital required.</strong>
+        </p>
+        <div class="cta-container" style="justify-content: flex-start;">
+          <a href="#waitlist" class="btn btn-primary">Join Waitlist</a>
+          <a href="#docs" class="btn btn-secondary">Read Documentation</a>
+        </div>
+      </div>
+      <div class="hero-image">
+        <img src="https://i.postimg.cc/d1180CCc/1767989610-(1).png" alt="ShadowLiquidity Health Factor Monitor" />
+      </div>
+    </div>
+  </div>
+
+  <div class="metrics">
+    <div class="metric-card">
+      <span class="metric-value">96%</span>
+      <span class="metric-label">Detection Accuracy</span>
+    </div>
+    <div class="metric-card">
+      <span class="metric-value">&lt;2s</span>
+      <span class="metric-label">Average Alert Latency</span>
+    </div>
+    <div class="metric-card">
+      <span class="metric-value">$8/mo</span>
+      <span class="metric-label">Operational Cost</span>
+    </div>
+    <div class="metric-card">
+      <span class="metric-value">15k+</span>
+      <span class="metric-label">Positions Monitored</span>
+    </div>
+  </div>
+
+  <main>
+    <section>
+      <h2>What is ShadowLiquidity?</h2>
+      <p>
+        ShadowLiquidity is a <strong>non-executing MEV surveillance agent</strong> that monitors pending transactions in the mempool to detect imminent liquidations on DeFi protocols like Aave, Compound, and Morpho.
+      </p>
+      <p>
+        Instead of competing in expensive gas auctions, it <strong>predicts and verifies liquidation conditions off-chain</strong> using advanced simulation techniques, giving you an information advantage without execution risk.
+      </p>
+    </section>
+
+    <section>
+      <h2>How It Works</h2>
+      <div class="workflow">
+        <div class="workflow-step">
+          <div class="step-number">1</div>
+          <div class="step-title">Monitor</div>
+          <div class="step-desc">Real-time mempool analysis via Flashbots Relay</div>
+        </div>
+        <div class="workflow-step">
+          <div class="step-number">2</div>
+          <div class="step-title">Simulate</div>
+          <div class="step-desc">Off-chain health factor calculation using Foundry/Anvil</div>
+        </div>
+        <div class="workflow-step">
+          <div class="step-number">3</div>
+          <div class="step-title">Verify</div>
+          <div class="step-desc">Oracle price checks and historical pattern analysis</div>
+        </div>
+        <div class="workflow-step">
+          <div class="step-number">4</div>
+          <div class="step-title">Alert</div>
+          <div class="step-desc">Cryptographically signed notifications via API/WebSocket</div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Why ShadowLiquidity Wins</h2>
+      <table class="comparison-table">
+        <thead>
+          <tr>
+            <th>Feature</th>
+            <th>Traditional MEV Bots</th>
+            <th>ShadowLiquidity</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Execution Risk</td>
+            <td><span class="crossmark">✗</span> High gas costs, failed txs</td>
+            <td><span class="checkmark">✓</span> Zero execution risk</td>
+          </tr>
+          <tr>
+            <td>Capital Requirements</td>
+            <td><span class="crossmark">✗</span> Requires wallet funding</td>
+            <td><span class="checkmark">✓</span> No capital needed</td>
+          </tr>
+          <tr>
+            <td>Regulatory Clarity</td>
+            <td><span class="crossmark">✗</span> Ambiguous legal status</td>
+            <td><span class="checkmark">✓</span> Information service only</td>
+          </tr>
+          <tr>
+            <td>Detection Speed</td>
+            <td><span class="crossmark">✗</span> Reacts to mempool</td>
+            <td><span class="checkmark">✓</span> Predicts before broadcast</td>
+          </tr>
+          <tr>
+            <td>Operational Cost</td>
+            <td><span class="crossmark">✗</span> $500+/month</td>
+            <td><span class="checkmark">✓</span> Under $10/month</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>Technical Advantages</h2>
+      <ul>
+        <li><strong>No on-chain execution:</strong> Eliminates wallet exposure and transaction failures</li>
+        <li><strong>State simulation:</strong> Uses Foundry, Anvil, or Reth for accurate off-chain validation</li>
+        <li><strong>Verifiable proofs:</strong> Each alert includes a cryptographic proof of simulated state (Merkle path or EVM trace hash)</li>
+        <li><strong>Multi-protocol support:</strong> Monitors Aave V2/V3, Compound V2/V3, Morpho Blue</li>
+        <li><strong>Oracle integration:</strong> Tracks Chainlink price feeds with latency detection</li>
+        <li><strong>Historical ML models:</strong> Learns from 100k+ past liquidations to improve accuracy</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Sample Alert Payload</h2>
+      <pre><code>{
+  "alert_id": "liq_7f3a9c2b",
+  "position": "0x7a16d8c3f4e5b2a1d9c8e7f6a5b4c3d2e1f0a9b8",
+  "protocol": "AaveV3",
+  "network": "ethereum",
+  "collateral": {
+    "asset": "wstETH",
+    "amount": "15.42",
+    "usd_value": "58203.40"
+  },
+  "debt": {
+    "asset": "USDC",
+    "amount": "52000",
+    "usd_value": "52000"
+  },
+  "health_factor": 1.03,
+  "liquidation_threshold": 1.0,
+  "liquidation_in_blocks": "&lt;= 2",
+  "confidence": 0.96,
+  "reasoning": "Oracle price deviation detected + mempool swap activity",
+  "proof": {
+    "type": "merkle",
+    "root": "0x9d4e...",
+    "path": ["0xa1b2...", "0xc3d4..."]
+  },
+  "timestamp": 1736528400,
+  "signature": "0x8f2a1b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a"
+}</code></pre>
+    </section>
+
+    <section>
+      <h2>Pricing</h2>
+      <div class="pricing-grid">
+        <div class="pricing-card">
+          <h3>Developer</h3>
+          <div class="price">Free</div>
+          <div class="price-label">Forever</div>
+          <ul class="feature-list">
+            <li>100 alerts/month</li>
+            <li>REST API access</li>
+            <li>Ethereum mainnet only</li>
+            <li>24h delayed data</li>
+            <li>Community support</li>
+          </ul>
+          <a href="#signup" class="btn btn-secondary" style="width: 100%; margin-top: 1rem;">Get Started</a>
+        </div>
+        
+        <div class="pricing-card featured">
+          <div class="pricing-badge">Most Popular</div>
+          <h3>Professional</h3>
+          <div class="price">$49<span style="font-size: 1rem; color: var(--muted);">/mo</span></div>
+          <div class="price-label">Billed monthly</div>
+          <ul class="feature-list">
+            <li>Unlimited alerts</li>
+            <li>WebSocket + REST API</li>
+            <li>All supported networks</li>
+            <li>Real-time data</li>
+            <li>Priority support</li>
+            <li>Historical data access</li>
+          </ul>
+          <a href="#signup" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Start Free Trial</a>
+        </div>
+        
+        <div class="pricing-card">
+          <h3>Enterprise</h3>
+          <div class="price">Custom</div>
+          <div class="price-label">Contact us</div>
+          <ul class="feature-list">
+            <li>Everything in Professional</li>
+            <li>Custom integrations</li>
+            <li>On-premise deployment</li>
+            <li>Dedicated support</li>
+            <li>SLA guarantees</li>
+            <li>White-label options</li>
+          </ul>
+          <a href="mailto:enterprise@shadowliquidity.xyz" class="btn btn-secondary" style="width: 100%; margin-top: 1rem;">Contact Sales</a>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Use Cases</h2>
+      <ul>
+        <li><strong>MEV Bots:</strong> Feed liquidation signals to your execution engine without building monitoring infrastructure</li>
+        <li><strong>DeFi Vaults:</strong> Protect user positions by rebalancing before liquidation events</li>
+        <li><strong>Risk Dashboards:</strong> Display real-time liquidation risk across your protocol</li>
+        <li><strong>Trading Algorithms:</strong> Anticipate market impact from large liquidations</li>
+        <li><strong>Research & Analytics:</strong> Study liquidation patterns and market microstructure</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Roadmap</h2>
+      <ul>
+        <li><strong>Q1 2025:</strong> ✓ Core detection engine (Python + Web3.py + Foundry)</li>
+        <li><strong>Q2 2025:</strong> REST API beta launch with free tier</li>
+        <li><strong>Q2 2025:</strong> WebSocket integration for real-time streaming</li>
+        <li><strong>Q3 2025:</strong> Multi-chain support (Arbitrum, Optimism, Base)</li>
+        <li><strong>Q3 2025:</strong> Discord/Telegram alert bots</li>
+        <li><strong>Q4 2025:</strong> On-chain reputation module for signal accuracy tracking</li>
+        <li><strong>Q4 2025:</strong> Open-source core detection logic</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Frequently Asked Questions</h2>
+      
+      <div class="faq-item">
+        <div class="faq-question">How accurate are the predictions?</div>
+        <div class="faq-answer">
+          Our current testnet shows 96% accuracy for liquidations within 2 blocks. We're continuously improving the model with historical data and will publish detailed accuracy metrics upon mainnet launch.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question">Do you execute liquidations yourself?</div>
+        <div class="faq-answer">
+          No. ShadowLiquidity is purely an intelligence layer. We don't execute any transactions, don't require wallet access, and don't compete in MEV auctions. You receive alerts and decide what to do with them.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question">What protocols do you support?</div>
+        <div class="faq-answer">
+          Currently: Aave V2/V3, Compound V2/V3, and Morpho Blue on Ethereum mainnet. We're adding support for Arbitrum, Optimism, and Base in Q3 2025.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question">How do you make money without executing?</div>
+        <div class="faq-answer">
+          We charge subscription fees for API access. The value we provide is the intelligence infrastructure—you don't need to build and maintain mempool monitoring, state simulation, or oracle tracking yourself.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question">Can I trust the alerts?</div>
+        <div class="faq-answer">
+          Every alert includes a cryptographic proof (Merkle path or EVM trace hash) that you can verify independently. We also track our historical accuracy on-chain, so our reputation is transparent and verifiable.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question">Will this be open-source?</div>
+        <div class="faq-answer">
+          Yes. Core detection logic will be open-sourced in Q4 2025 after we validate the approach. The API service layer will remain proprietary, but the algorithms will be public for educational purposes.
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>For Builders</h2>
+      <p>
+        If you're developing an MEV bot, a self-monitoring DeFi vault, or a risk analytics tool, ShadowLiquidity provides a <strong>low-friction early-warning layer</strong>—without requiring deep mempool infrastructure or custom EVM simulation logic.
+      </p>
+      <p>
+        We prioritize <strong>technical clarity, reproducibility, and educational value</strong> over speculative returns. This project exists to make DeFi more transparent and accessible to builders who care about precision.
+      </p>
+      <div class="cta-container" style="justify-content: flex-start; margin-top: 2rem;">
+        <a href="#docs" class="btn btn-primary">Read the Docs</a>
+        <a href="https://github.com/shadowliquidity" class="btn btn-secondary">View on GitHub</a>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="social-links">
+      <a href="https://twitter.com/shadowliquidity" target="_blank">Twitter/X</a>
+      <a href="https://github.com/shadowliquidity" target="_blank">GitHub</a>
+      <a href="https://discord.gg/shadowliquidity" target="_blank">Discord</a>
+      <a href="https://t.me/shadowliquidity" target="_blank">Telegram</a>
+      <a href="mailto:hello@shadowliquidity.xyz">Email</a>
+    </div>
+    <p style="margin-top: 2rem;">ShadowLiquidity — Concept in active development. Not financial advice.</p>
+    <p>Designed for builders who prioritize precision over noise.</p>
+    <p style="margin-top: 1rem; font-size: 0.8rem;">© 2025 ShadowLiquidity. All rights reserved.</p>
+  </footer>
+
+</body>
+</html>
